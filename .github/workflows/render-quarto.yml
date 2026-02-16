@@ -1,4 +1,4 @@
-name: Render Quarto (PR)
+name: Render Quarto PR
 
 on:
   pull_request:
