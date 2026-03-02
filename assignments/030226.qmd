@@ -1,0 +1,15 @@
+--- 
+title: "030226" 
+format: html 
+---
+```{r}
+library(dplyr)
+library(tidyr)
+
+catch_original <- read.csv(
+  url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1",
+      method = "libcurl")
+)
+
+catch_original
+```
