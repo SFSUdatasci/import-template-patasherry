@@ -1,0 +1,66 @@
+---
+title: "a03: Cleaning and Wrangling Data"
+Auther: "Patrick Sherry"
+date: 3/9/2026
+format: html
+---
+
+## Introduction
+
+This looks at salmon catch data from the Alaska Regional Catch data set. I will arrange the raw data and summarize mean catch by region to find which areas have the best harvest.
+
+## Data
+
+<https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1>
+
+```{r}
+
+# Load the readr package
+library(readr)
+
+# Load dplyr and tidyr
+library(dplyr)
+library(tidyr)
+
+# Read the raw data
+catch_original <- read_csv("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1")
+```
+
+## Analysis
+```{r}
+# Creating a pipeline to clean and summarize the catch data
+mean_region <- catch_original %>%
+
+  # Remove the 'All' column and 'notesRegCode'
+  select(-All, -notesRegCode) %>%
+
+  #replace "I" with "1" in the Chinook column
+  mutate(Chinook = if_else(Chinook == "I", "1", Chinook)) %>%
+
+  # Convert Chinook from character to numeric
+  mutate(Chinook = as.numeric(Chinook)) %>%
+
+  # convert from wide format to long format
+  pivot_longer(-c(Region, Year),
+               names_to = "species",
+               values_to = "catch") %>%
+
+  # convert catch values to thousands
+  mutate(catch = catch * 1000) %>%
+
+  # Group rows by Region
+  group_by(Region) %>%
+
+  # Calculate the mean catch
+  summarize(mean_catch = mean(catch)) %>%
+
+  # Sort results from highest to lowest mean catch
+  arrange(desc(mean_catch))
+
+# Display the top rows
+head(mean_region)
+```
+
+## Discussion
+
+The results show that the SEE region has the highest mean salmon catch, followed by BRB and NSE.

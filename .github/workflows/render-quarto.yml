@@ -1,8 +1,14 @@
-name: Render Quarto (PR)
+<<<<<<< HEAD
+name: Render Quarto PR
 
 on:
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
+=======
+name: Render Quarto do not (PR)
+
+on:
+ workflow_dispatch:
+>>>>>>> rescue-branch
 
 jobs:
   render:
