@@ -1,0 +1,77 @@
+---
+title: "R Practice: Tidy Data and Joins"
+Auther: "Patrick Sherry"
+Date: "3/9/2026"
+format: html
+---
+
+```{r}
+library(readr)
+library(dplyr)
+
+library(here)
+library(lubridate)
+
+
+bird_observations <- read_csv(here::here("data/raw/52_pp52_birds_1.csv"))
+surveys <- read_csv(here::here("data/raw/52_pp52_surveys_1.csv"))
+sites <- read_csv(here::here("data/raw/52_pp52_sites_1.csv"))
+taxalist <- read_csv(here::here("data/Raw/52_pp52_taxalist_1.csv"))
+
+
+dim(bird_observations)
+head(bird_observations)
+
+glimpse(bird_observations)
+
+summary(bird_observations)
+
+unique(bird_observations$species_id)
+
+
+birds_subset <- bird_observations %>% 
+  filter(species_id %in% c("BHCO", "RWBL")) %>% 
+  filter(site_id %in% c("LI-W", "NU-C"))
+
+
+# syntax using pipe
+birds_left <- birds_subset %>% 
+  left_join(y = sites, by = "site_id")
+# don't see x = birds_subset here because piping in birds_subset means it automatically assumes birds_subset as x.
+
+# syntax without pipe
+birds_left <- left_join(x = birds_subset, y = sites, by = "site_id")
+
+# syntax using pipe
+birds_full <- birds_subset %>% 
+  full_join(y = sites, by = "site_id")
+
+# syntax without pipe
+birds_full <- full_join(x = birds_subset, y = sites, by = "site_id")
+
+# syntax using pipe
+birds_inner <- birds_subset %>% 
+  inner_join(y = taxalist, by = "species_id")
+
+# syntax without pipe
+birds_inner <- inner_join(x = birds_subset, y = taxalist, by = "species_id" )
+
+bird_observations <- bird_observations %>% 
+  rename(bird_obs_notes = notes)
+
+bird_obs_subset <- bird_observations %>% 
+  full_join(y = taxalist, by = "species_id") %>% 
+  full_join(y = sites, by = "site_id") %>% 
+  full_join(y = surveys, by = c("site_id", "survey_id")) %>%  
+  select(survey_date, common_name, park_name, bird_count, observer)
+
+bird_obs_subset <- bird_obs_subset %>% 
+  mutate(observer = if_else(condition = observer == "Josh Burns", 
+                            true = "J. Burns", 
+                            false = observer))
+
+unique(bird_obs_subset$observer)
+
+
+```
+

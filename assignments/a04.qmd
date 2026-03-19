@@ -1,0 +1,111 @@
+---
+title: "a04"
+author: "Patrick Sherry"
+date: "3/26/2026"
+format: html
+---
+## Introduction
+
+This report practices joining tables together using bird survey data collected from the central Arizona-Phoenix metropolitan area by Arizona State University researchers.
+
+## Analysis
+
+```{r}
+library(readr)
+library(dplyr)
+library(here)
+```
+
+```{r}
+
+# read in data
+bird_observations <- readr::read_csv(here::here("data", "raw", "52_pp52_birds_1.csv"))
+surveys <- readr::read_csv(here::here("data", "raw", "52_pp52_surveys_1.csv"))
+sites <- readr::read_csv(here::here("data", "raw", "52_pp52_sites_1.csv"))
+taxalist <- readr::read_csv(here::here("data", "raw", "52_pp52_taxalist_1.csv"))
+```
+
+```{r}
+# dimensions of the dataframe
+dim(bird_observations)
+
+# returns top six rows
+head(bird_observations)
+
+# returns all the columns
+glimpse(bird_observations)
+
+# returns some statistics
+summary(bird_observations)
+
+# returns column names
+names(bird_observations)
+
+# returns unique values
+unique(bird_observations$species_id)
+```
+
+```{r}
+# create a subset of bird_observations with only BHCO and RWBL species
+birds_subset <- bird_observations %>%
+  filter(species_id %in% c("BHCO", "RWBL")) %>%
+  filter(site_id %in% c("LI-W", "NU-C"))
+```
+
+```{r}
+# use a left join to merge birds_subset with sites
+birds_left <- birds_subset %>%
+  left_join(y = sites, by = "site_id")
+```
+
+```{r}
+# use a full join to merge birds_subset and sites
+birds_full <- birds_subset %>%
+  full_join(y = sites, by = "site_id")
+```
+
+```{r}
+# use an inner join to merge birds_subset and taxalist
+birds_inner <- birds_subset %>%
+  inner_join(y = taxalist, by = "species_id")
+```
+
+```{r}
+# use a left join instead of inner join for comparison
+birds_inner_left <- birds_subset %>%
+  left_join(y = taxalist, by = "species_id")
+```
+
+```{r}
+# rename the notes column to bird_obs_notes
+bird_observations <- bird_observations %>%
+  rename(bird_obs_notes = notes)
+```
+
+```{r}
+# join all tables together and select only the columns needed
+bird_obs_subset <- bird_observations %>%
+  full_join(y = taxalist, by = "species_id") %>%
+  full_join(y = sites, by = "site_id") %>%
+  full_join(y = surveys, by = c("site_id", "survey_id")) %>%
+  select(survey_date, common_name, park_name, bird_count, observer)
+```
+
+```{r}
+# check the unique observer values
+unique(bird_obs_subset$observer)
+```
+
+```{r}
+# fix "Josh Burns" to match the format of other observer names
+bird_obs_subset <- bird_obs_subset %>%
+  mutate(observer = if_else(condition = observer == "Josh Burns",
+                            true = "J. Burns",
+                            false = observer))
+
+unique(bird_obs_subset$observer)
+```
+
+## Discussion
+
+Joining the four bird survey tables together allowed us to connect species names, site information, and survey metadata to the raw bird observations. The data cleaning revealed an inconsistently formatted observer name which was corrected to match the format used by others.
